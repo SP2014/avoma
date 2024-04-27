@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Avoma Google meet Server</title>
+    <style>
+        body {
+            margin: 20;
+            padding-bottom: 3rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+    </style>
+    <!--style>
+        body {
+            margin: 0;
+            padding-bottom: 3rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #form {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 0.25rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            height: 3rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        #input {
+            border: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            border-radius: 2rem;
+            margin: 0.25rem;
+        }
+
+        #input:focus {
+            outline: none;
+        }
+
+        #form>button {
+            background: #333;
+            border: none;
+            padding: 0 1rem;
+            margin: 0.25rem;
+            border-radius: 3px;
+            outline: none;
+            color: #fff;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages>li {
+            padding: 0.5rem 1rem;
+        }
+
+        #messages>li:nth-child(odd) {
+            background: #efefef;
+        }
+    </style-->
+</head>
+
+<body>
+    <ul id="messages"></ul>
+
+    <p>Enter meeting link</p>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" />&NonBreakingSpace;<button id="startBtn">Join</button>
+    </form>
+
+    <span>
+        <button id="stopBtn">Stop</button>
+    </span>
+    <p>
+        <button id="toggleMicBtn">Toggle Mic</button>
+    </p>
+    <p>
+        <button id="toggleVideoBtn">Toggle Video</button>
+    </p>
+
+    <form id="mform" action="">
+        <input id="minput" autocomplete="off" /><button id="messageBtn">Send Message</button>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        var messages = document.getElementById('messages');
+
+        const mform = document.getElementById('mform');
+        const minput = document.getElementById('minput');
+
+        const messageBtn = document.querySelector('#messageBtn');
+
+        const toggleMic = document.querySelector('#toggleMicBtn');
+        const toggleVideo = document.querySelector('#toggleVideoBtn');
+        const stopBtn = document.querySelector('#stopBtn');
+        document.querySelector('#stopBtn').setAttribute('disabled', true);
+
+        socket.on('meeting_actions', function (msg) {
+            var item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            //window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (input.value) {
+                if (input.value.includes('https')) {
+                    socket.emit('meet_start', input.value);
+                    document.querySelector('#startBtn').setAttribute('disabled', true);
+                    document.querySelector('#stopBtn').removeAttribute('disabled');
+                } else {
+                    socket.emit('toggle_mic', input.value);
+                }
+                input.value = '';
+            }
+        });
+
+        mform.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log('Sending text message');
+
+            if (minput.value) {
+                socket.emit('message_all', minput.value);
+                minput.value = '';
+            }
+        });
+
+        // messageBtn.addEventListener('click', (e) => {
+        //     socket.emit('message_all', 'Hello everyone');
+        //     //minput.value = '';
+        // });
+
+        stopBtn.addEventListener('click', (e) => {
+            console.log('Close meeting');
+            socket.emit('end_meeting', '');
+        })
+
+        toggleMic.addEventListener('click', (e) => {
+            //e.preventDefault();
+            console.log('Mic');
+            socket.emit('toggle_mic', '');
+        });
+
+        toggleVideo.addEventListener('click', (e) => {
+            console.log('Camera');
+            socket.emit('toggle_camera', '');
+        });
+
+    </script>
+</body>
+
+</html>
