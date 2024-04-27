@@ -40,7 +40,7 @@ socket.on('toggle_camera', async (data) => {
 })
 socket.on('meet_start', async (data) => {
     console.log(data);
-    config = { link: data, email: 'a00440722@gmail.com', pass: 'Ashrock_May2k23' };
+    config = { link: data, email: '<replace_with_email>', pass: '<replace_with_password>' };
     //(async () => {
 
     client.once('ready', async () => {
